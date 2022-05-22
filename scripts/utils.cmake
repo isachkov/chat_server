@@ -1,0 +1,5 @@
+macro(set_environment)
+  set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE )
+  include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+  conan_basic_setup()
+endmacro()

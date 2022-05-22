@@ -1,0 +1,103 @@
+syntax = "proto3";
+
+// Handshake section
+
+// First step of the handshake after connection setup
+// initiated by the client
+message HandshakeRequest {
+  string user_name = 1;
+  fixed64 password_hash = 2;
+  // Mask with privelegies bits
+  fixed64 requested_privilegies = 3;
+};
+
+// Server respone to handshake, all credentials are checked
+// at this point
+message HandshakeResponse {
+  string response_status = 1;
+  // List of service gateways for this client
+  string gateway = 2;
+
+  enum Status {
+    Allowed = 1;
+    PrivilegiesNotAllowed = 2;
+    InvalidPassword = 3;
+    UserAlreadyLoggedIn = 4;
+  }
+
+  Status status = 3;
+};
+
+// User management section
+
+// User creation
+message RegistrationRequest {
+  string user_name = 1;
+  string password = 2;
+};
+
+message RegistrationResponse {
+  enum Status {
+    Registered = 1;
+    NameAlreadyInUse = 2;
+  }
+
+  Status status = 1;
+  fixed64 user_gid = 2;
+};
+
+message ChangeUserPrivelegies {
+  fixed64 user_gid = 1;
+  fixed64 user_privilegies = 2;
+  string master_key = 3;
+};
+
+// Session section
+
+// Client requests session list from the server
+message SessionListRequest {
+  // Id of the user who requests the list
+  fixed64 user_gid = 1;
+};
+// Server responds with a set of session descriptions
+message SessionList { repeated string session_name = 1; };
+// Session description
+message SessionDescription {
+  string name = 1;
+  string description = 2;
+  bool requires_password = 3;
+};
+// User may join a session
+message JoinSessionRequest {
+  // User may proved a password for the session
+  fixed64 password_hash = 1;
+  // User may try to use leveraged credentials
+  fixed64 requested_credentials = 2;
+};
+// Server responds with the session introduction
+// All user hooks, wellcome messages, warnings etc. come here
+message SessionIntroduction {
+  string intro_message = 1;
+  SessionUserList users = 2;
+};
+
+// Meta data section
+
+// User may request details about another user
+message UserDetailsRequest { string user_name = 1; };
+// User details
+message UserDetails { string user_description = 1; };
+// List of the user for the specific session
+message SessionUserList { repeated string user_name = 1; };
+// Short new user message update
+message SessionNewUser { string user_name = 1; };
+
+// Text messaging section
+
+// A simple text message
+message PlainTextMessage {
+  fixed64 user_gid = 1;
+  string body = 1;
+};
+// Batch of the simple text messages for history and stuff like that
+message PlainTextMessageBatch { repeated PlainTextMessage messages = 1; };
